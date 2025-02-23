@@ -549,7 +549,7 @@ const char *err_stringify(ERR err) {
     STRINGIFY_CASE_TABLE_ERRS()    
   }
 
-  return STRINGIFY(INVALID_PR_ERR);
+  return STRINGIFY(INVALID_ERR);
 }
 
 //=:parser:parser
