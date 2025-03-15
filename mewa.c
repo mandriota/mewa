@@ -1243,10 +1243,9 @@ int main(int argc, char *argv[]) {
 
   if (ir.pr->lx.rd.src != NULL)
     free(ir.pr->lx.rd.page.data);
-  free(ir.pr);
-
-  if (argc == 3)
+	if (argc == 3)
     fclose(ir.pr->lx.rd.src);
-
+	
+  free(ir.pr);
   return EXIT_SUCCESS;
 }
