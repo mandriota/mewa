@@ -29,6 +29,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <tgmath.h> // IWYU pragma: keep
+#include <ctype.h>
 // IWYU pragma: no_include <math.h>
 
 #ifndef M_PI
@@ -129,18 +130,6 @@ ssize_t getline(char **restrict lineptr, size_t *restrict n,
 
 #define ABS(a) (a >= 0 ? a : -a)
 
-//=:util:ascii
-
-static inline bool is_whitespace(char c) { return c == ' ' || c == '\t' || c == '\v' || c == '\r' || c == '\n'; }
-
-static inline bool is_lower(char c) { return c >= 'a' && c <= 'z'; }
-
-static inline bool is_upper(char c) { return c >= 'A' && c <= 'Z'; }
-
-static inline bool is_letter(char c) { return is_lower(c) || is_upper(c) || c == '_'; }
-
-static inline bool is_digit(char c) { return c >= '0' && c <= '9'; }
-
 //=:util:data_structures
 
 typedef struct {
@@ -164,13 +153,13 @@ typedef bool bol_t;
 //=:util:encoding
 
 char encode_symbol_c(char c) {
-  if (is_upper(c))
+  if (isupper(c))
     return (c - 'A') + 1;
-  if (is_lower(c))
+  if (islower(c))
     return (c - 'a') + ENC_OFF + 1;
   if (c == '_')
     return ENC_OFF * 2 + 1;
-  if (is_digit(c))
+  if (isdigit(c))
     return (c - '0') + ENC_OFF * 2 + 2;
 
   DBG_FATAL("symbol's character (%d) is out of range", c);
