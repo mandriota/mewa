@@ -37,6 +37,7 @@
 
 #include <assert.h>
 #include <complex.h>
+#include <ctype.h>
 #include <math.h>
 #include <stdbool.h> // IWYU pragma: keep
 #include <stdint.h>
@@ -151,7 +152,7 @@ void rd_next_char(Reader *rd) {
 }
 
 void rd_skip_whitespaces(Reader *rd) {
-  while (is_whitespace(rd->cch))
+  while (isspace(rd->cch))
     rd_next_char(rd);
 }
 
@@ -175,7 +176,7 @@ double lx_read_integer(Lexer *lx, double *log10, float *rel_err) {
   double integer = 0;
   *log10 = 0;
 
-  while (is_digit(lx->rd.cch)) {
+  while (isdigit(lx->rd.cch)) {
     test_integer = test_integer * 10 + lx->rd.cch - '0';
     integer = integer * 10 + lx->rd.cch - '0';
     *log10 += 1;
@@ -236,7 +237,7 @@ void lx_next_token_symbol(Lexer *lx) {
       return;
     }
     rd_next_char(&lx->rd);
-  } while (is_letter(lx->rd.cch) || is_digit(lx->rd.cch));
+  } while (isalpha(lx->rd.cch) || isdigit(lx->rd.cch));
 
   rd_prev(&lx->rd);
   lx->tt = TT_SYM;
@@ -256,7 +257,7 @@ void lx_next_token_factorial(Lexer *lx, bool whitespace_prefix) {
     return;
   }
 
-  if (c == 1 && !is_whitespace(lx->rd.cch) && lx->rd.cch != '\0') {
+  if (c == 1 && !isspace(lx->rd.cch) && lx->rd.cch != '\0') {
     lx->tt = TT_NOT;
   } else if (!whitespace_prefix && lx->rd.ptr != 1) {
     lx->tt = TT_FAC;
@@ -284,15 +285,15 @@ void lx_next_token_factorial(Lexer *lx, bool whitespace_prefix) {
 
 void lx_next_token(Lexer *lx) {
   rd_next_char(&lx->rd);
-  bool whitespace_prefix = is_whitespace(lx->rd.cch);
+  bool whitespace_prefix = isspace(lx->rd.cch);
   rd_skip_whitespaces(&lx->rd);
 
   lx->rd.mrk = lx->rd.ptr;
   lx->tt = TT_ILL;
 
   switch (lx->rd.cch) {
-  case '+':  LX_LOOKUP(lx->tt = TT_NOP, LX_TRY_C(TT_ADD, is_whitespace(lx->rd.cch), ) LX_TRY_C(TT_APX, lx->rd.cch == '/', )); break;
-  case '-':  LX_LOOKUP(lx->tt = TT_NEG, LX_TRY_C(TT_SPZ, lx->rd.cch == '>', ) LX_TRY_C(TT_SUB, is_whitespace(lx->rd.cch), )); break;
+  case '+':  LX_LOOKUP(TT_NOP, LX_TRY_C(TT_ADD, isspace(lx->rd.cch), ) LX_TRY_C(TT_APX, lx->rd.cch == '/', )); break;
+  case '-':  LX_LOOKUP(TT_NEG, LX_TRY_C(TT_SPZ, lx->rd.cch == '>', ) LX_TRY_C(TT_SUB, isspace(lx->rd.cch), )); break;
   case '*':  lx->tt = TT_MUL; break;
   case '/':  lx->tt = TT_QUO; break;
   case '%':  lx->tt = TT_MOD; break;
@@ -311,9 +312,9 @@ void lx_next_token(Lexer *lx) {
     lx->pm.c = I;
     break;
   default:
-    if (is_digit(lx->rd.cch) || lx->rd.cch == '.') {
+    if (isdigit(lx->rd.cch) || lx->rd.cch == '.') {
       lx_next_token_number(lx);
-    } else if (is_letter(lx->rd.cch)) {
+    } else if (isalpha(lx->rd.cch)) {
       lx_next_token_symbol(lx);
     }
   }
@@ -662,7 +663,7 @@ ERR pr_next_biop_node(Parser *pr, Node_Index *lhs, Priority pt) {
     pr->nodes[op].as.bp.lhs = *lhs;
     pr->nodes[op].as.bp.rhs = rhs;
 
-    if (pr->nodes[op].type == TT_SPZ)
+    if (pr->nodes[op].type == NT_BIOP_SPZ)
       pr_nd_obj_bound_add(pr, bound_low, pr->nodes_len);
 
     *lhs = op;
